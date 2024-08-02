@@ -13,6 +13,3 @@ migrate -path ./migrations/sql/ -database "postgresql://username:secretkey@local
 
 <!-- Below is How To Down Migrate -->
 migrate -path ./migrations/sql/ -database "postgresql://username:secretkey@localhost:5432/database_name?sslmode=disable" -verbose down
-
-
-migrate -path ./migrations/sql/ -database "postgresql://acen:Pangkalpinan@localhost:5432/pos_acen?sslmode=disable" -verbose up

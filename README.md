@@ -57,7 +57,7 @@ inexpensive to create and maintain. Even small fixes and changes should have the
   * `adapter` folder is for storing the adapter struct which holds `driving adapters` and `driven adapters`.
     * **driving adapters** are the adapters that will be used in the API handler to interact with the service. e.g. Rest Server, CLI, Admin GUI.
     * **driven adapters** are the adapters that will be used in the service to interact with the repository.
-  * `infrastucture` folder is for storing the infrastructure packages of the API server.
+  * `config` folder is for storing the infrastructure packages of the API server.
     * **config.go** is for storing the configuration the service needs.
     * **logging.go** is for storing the logger configuration.
   * `module` folder is for storing the modules of the API server that contains the entity, repository, service, and handler of a module.
@@ -71,8 +71,7 @@ inexpensive to create and maintain. Even small fixes and changes should have the
 
 ### How to migrate and seed the database
 
-* please read the `db/migrations/readme.md` file to know how to migrate the database.
-* to seed the database with dummy data, run the command `go run cmd/bin/main.go seed -table=product_categories -total=10` to seed the product_categories table with 10 dummy data.
+* please read the `migrations/readme.md` file to know how to migrate the database.
 
 ### How to create a new module
 
