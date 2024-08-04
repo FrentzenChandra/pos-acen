@@ -8,8 +8,9 @@ import (
 
 type UserRepository interface {
 	RegisterUser(bReq entity.User) (*uuid.UUID, error)
+	GetUserDetails(bReq entity.User) (*entity.User, error)
 }
 
 type UserService interface {
-	
+	RegisterUser(bReq entity.User) (*uuid.UUID, error)
 }

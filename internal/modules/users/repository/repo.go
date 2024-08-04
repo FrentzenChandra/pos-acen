@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"fmt"
 	"log"
 	"pos-acen/internal/helper/pass_encryption"
 	"pos-acen/internal/modules/users/entity"
 	"pos-acen/internal/modules/users/ports"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -62,9 +64,63 @@ func (u *userRepository) RegisterUser(bReq entity.User) (*uuid.UUID, error) {
 		return nil, err
 	}
 
+	// Commit akan menutup rows walaupun kita tidak melakukan defer rows.close
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 
 	return &id, err
+}
+
+func (u *userRepository) GetUserDetails(bReq entity.User) (*entity.User, error) {
+	var queryConditionals []string
+	var user *entity.User
+
+	query := `SELECT *
+	FROM users`
+
+	queryConditionals = append(queryConditionals, "WHERE deleted_at IS NULL")
+
+	if bReq.Email != "" {
+		queryConditionals = append(queryConditionals, fmt.Sprintf("email = %s", bReq.Email))
+	}
+
+	if bReq.Username != "" {
+		queryConditionals = append(queryConditionals, fmt.Sprintf("username = %s", bReq.Username))
+	}
+
+	if bReq.Id != uuid.Nil {
+		queryConditionals = append(queryConditionals, fmt.Sprintf("id = %v", bReq.Id))
+	}
+
+	if len(queryConditionals) > 0 {
+		query += strings.Join(queryConditionals, " AND ")
+	}
+
+	query += " Limit 1 "
+
+	rows, err := u.db.Queryx(query)
+
+	if err != nil {
+		log.Println("Error On GETUSERDETAILS : " + err.Error())
+		return nil, err
+	}
+
+	// Kita harus menutup sqlx.Rows setiap kali ingin dipakai defer dalam hal ini berguna untuk
+	// Menyatakan jalankan kode ini jika sebuah function sudah selesai
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		err := rows.StructScan(&user)
+
+		if err != nil {
+			log.Println("Error On GETUSERDETAILS Scan Rows : " + err.Error())
+			return nil, err
+		}
+
+	}
+
+	return user, nil
 }
