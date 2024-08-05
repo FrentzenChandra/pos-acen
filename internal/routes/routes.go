@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"pos-acen/internal/helper"
+	"pos-acen/internal/modules/users/handler/rest"
 	"pos-acen/pkg/config"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 type Routes struct {
 	Router *mux.Router
+	User   *rest.UserHandler
 }
 
 func (r *Routes) Run(port string) {
@@ -34,6 +36,7 @@ func (r *Routes) SetupRouter() {
 	r.Router.Use(helper.EnabledCors, helper.LoggerMiddleware())
 
 	r.SetupBaseURL()
+	r.SetupUser()
 }
 
 func (r *Routes) SetupBaseURL() {
@@ -41,4 +44,10 @@ func (r *Routes) SetupBaseURL() {
 	if baseURL != "" && baseURL != "/" {
 		r.Router.PathPrefix(baseURL).HandlerFunc(helper.URLRewriter(r.Router, baseURL))
 	}
+}
+
+func (r *Routes) SetupUser() {
+	userRoutes := r.Router.PathPrefix("/users").Subrouter()
+
+	userRoutes.HandleFunc("/signup", r.User.Register).Methods(http.MethodPost, http.MethodOptions)
 }

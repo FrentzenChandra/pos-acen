@@ -33,7 +33,7 @@ func ConnectToDatabase(conn Connection) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	defer db.Close()
+
 
 	// Test the connection to the database
 	if err := db.Ping(); err != nil {

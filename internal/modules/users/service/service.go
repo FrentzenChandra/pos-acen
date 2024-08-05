@@ -24,7 +24,7 @@ func (s *userService) RegisterUser(bReq entity.User) (*uuid.UUID, error) {
 		return nil, err
 	}
 
-	if user.Email != "" {
+	if user != nil {
 		log.Println("User email is already registered")
 		return nil, err
 	}
@@ -37,5 +37,4 @@ func (s *userService) RegisterUser(bReq entity.User) (*uuid.UUID, error) {
 	}
 
 	return id, nil
-
 }

@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"pos-acen/internal/modules/users/handler/rest"
+	userRepo "pos-acen/internal/modules/users/repository"
+	userService "pos-acen/internal/modules/users/service"
 	"pos-acen/internal/routes"
 	"pos-acen/pkg/config"
 	"sync"
@@ -33,6 +36,8 @@ func main() {
 		return
 	}
 
+	defer mysql.Close()
+
 	mutex := &sync.Mutex{}
 	validator := validator.New()
 	render := renderer.New()
@@ -41,5 +46,11 @@ func main() {
 }
 
 func setupRoutes(render *renderer.Render, myDb *sqlx.DB, validator *validator.Validate, config *config.Config, mutex *sync.Mutex) *routes.Routes {
-	return &routes.Routes{}
+	userRepo := userRepo.NewUserRepository(myDb)
+	userService := userService.NewUserService(userRepo)
+	userHandler := rest.NewUserHandler(userService, render)
+
+	return &routes.Routes{
+		User: userHandler,
+	}
 }

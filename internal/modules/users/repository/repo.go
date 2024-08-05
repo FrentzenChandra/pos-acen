@@ -48,14 +48,13 @@ func (u *userRepository) RegisterUser(bReq entity.User) (*uuid.UUID, error) {
 	}
 
 	query := `
-	INSERT INTO users (id, email, username, password, created_at)
-	VALUES ($1, $2, $3, $4, now())
+	INSERT INTO users (email, username, password, created_at)
+	VALUES ($1, $2, $3, now())
 	RETURNING id`
 
 	var id uuid.UUID
 
 	if err := tx.QueryRow(query,
-		bReq.Id,
 		bReq.Email,
 		bReq.Username,
 		pass,
@@ -73,24 +72,31 @@ func (u *userRepository) RegisterUser(bReq entity.User) (*uuid.UUID, error) {
 }
 
 func (u *userRepository) GetUserDetails(bReq entity.User) (*entity.User, error) {
+	_, err := u.db.Begin()
+
+	if err != nil {
+		log.Println("Error pada saat Memulai Db Begin : " + err.Error())
+		return nil, err
+	}
+
 	var queryConditionals []string
 	var user *entity.User
 
 	query := `SELECT *
 	FROM users`
 
-	queryConditionals = append(queryConditionals, "WHERE deleted_at IS NULL")
+	queryConditionals = append(queryConditionals, " WHERE deleted_at IS null")
 
 	if bReq.Email != "" {
-		queryConditionals = append(queryConditionals, fmt.Sprintf("email = %s", bReq.Email))
+		queryConditionals = append(queryConditionals, fmt.Sprintf("email = '%s'", bReq.Email))
 	}
 
 	if bReq.Username != "" {
-		queryConditionals = append(queryConditionals, fmt.Sprintf("username = %s", bReq.Username))
+		queryConditionals = append(queryConditionals, fmt.Sprintf("username = '%s'", bReq.Username))
 	}
 
 	if bReq.Id != uuid.Nil {
-		queryConditionals = append(queryConditionals, fmt.Sprintf("id = %v", bReq.Id))
+		queryConditionals = append(queryConditionals, fmt.Sprintf("id = '%v'", bReq.Id))
 	}
 
 	if len(queryConditionals) > 0 {
@@ -99,9 +105,10 @@ func (u *userRepository) GetUserDetails(bReq entity.User) (*entity.User, error) 
 
 	query += " Limit 1 "
 
-	rows, err := u.db.Queryx(query)
+	rows, err := u.db.Query(query)
 
 	if err != nil {
+		log.Println(query)
 		log.Println("Error On GETUSERDETAILS : " + err.Error())
 		return nil, err
 	}
@@ -113,7 +120,14 @@ func (u *userRepository) GetUserDetails(bReq entity.User) (*entity.User, error) 
 
 	for rows.Next() {
 
-		err := rows.StructScan(&user)
+		err := rows.Scan(
+			&user.Id,
+			&user.Email,
+			&user.Username,
+			&user.Password,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
 
 		if err != nil {
 			log.Println("Error On GETUSERDETAILS Scan Rows : " + err.Error())
@@ -121,6 +135,7 @@ func (u *userRepository) GetUserDetails(bReq entity.User) (*entity.User, error) 
 		}
 
 	}
+
 
 	return user, nil
 }
